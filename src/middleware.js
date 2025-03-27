@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const optionalAuthPaths = ["/", "/about", "/contact"];
+const optionalAuthPaths = ["/", "/login", "/register"];
 
 // async function refreshAccessToken(refreshToken) {
 //   try {
@@ -50,10 +50,6 @@ export async function middleware(request) {
   //   if (!accessToken && refreshToken) {
   //     newAccessToken = await refreshAccessToken(refreshToken);
   //   }
-  // หากไม่มี refresh token ใช้แค่เงื่อนไขนี้แทน
-  if (!accessToken) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
 
   const response = NextResponse.next();
 
@@ -65,7 +61,7 @@ export async function middleware(request) {
     response.headers.set("user_access_token", newAccessToken);
   }
 
-  if (!isOptionalAuth && !isValidToken) {
+  if (!accessToken && !isOptionalAuth && !isValidToken) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
