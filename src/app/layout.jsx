@@ -19,7 +19,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${ChakraPetch.className} antialiased`}>
+      <body className={`${ChakraPetch.className} antialiased bg-gray-100 dark:bg-gray-800`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
