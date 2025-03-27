@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import Image from 'next/image'
 
 const PercentagePage = () => {
   const [input1, setInput1] = useState('')
@@ -157,8 +158,19 @@ const PercentagePage = () => {
   const currentDescription = mode ? modeDescriptions[mode] : null
 
   return (
-    <div className="container mx-auto py-10">
+    <div className="container mx-auto py-10 min-h-screen">
       <Card className="max-w-2xl mx-auto">
+
+      <div className="relative w-full h-60 mb-4">
+          <Image
+            src="/images/percentage-calculator.webp"
+            alt="Percentage Calculator"
+            fill
+            className="object-cover rounded-t-lg"
+            priority
+          />
+        </div>
+
         <CardHeader>
           <CardTitle className="text-2xl text-center">
             เครื่องมือคำนวณเปอร์เซ็นต์

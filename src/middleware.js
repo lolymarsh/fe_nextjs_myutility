@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { validateJWT } from "./action/auth";
 
-const optionalAuthPaths = ["/", "/login", "/register"];
+const optionalAuthPaths = ["/", "/login", "/register", "/list-program","/percentage", "/yield"];
 
 export async function middleware(request) {
   const accessToken = request.cookies.get("access_token")?.value;
@@ -34,5 +34,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|images).*)"],
 };
