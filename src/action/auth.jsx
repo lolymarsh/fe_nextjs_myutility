@@ -65,6 +65,7 @@ export async function validateJWT(token) {
     return response?.data?.data;
   } catch (error) {
     console.error("JWT validation failed:", error?.response?.data?.error);
+    cookies().delete("access_token");
     return false;
   }
 }
