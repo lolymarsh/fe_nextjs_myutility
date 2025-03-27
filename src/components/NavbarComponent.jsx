@@ -9,7 +9,7 @@ import ThemeToggleComponent from "./ThemeToggleComponent";
 
 const NavbarComponent = async () => {
   const headersList = headers();
-  const user_data = JSON.parse(headersList.get("user_data"));
+  const user_data = headersList.get("user_data")
 
   const navItems = [
     { name: "เข้าสู่ระบบ", href: "/login", is_show: user_data ? false : true },
