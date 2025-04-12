@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
 import { validateJWT } from "./action/auth";
 
-const optionalAuthPaths = ["/", "/login", "/register", "/list-program","/percentage", "/yield"];
+const optionalAuthPaths = [
+  "/",
+  "/login",
+  "/register",
+  "/list-program",
+  "/list-program/percentage",
+  "/list-program/yield",
+];
 
 export async function middleware(request) {
   const accessToken = request.cookies.get("access_token")?.value;
@@ -21,9 +28,13 @@ export async function middleware(request) {
   const isValidToken = newAccessToken && (await validateJWT(newAccessToken));
 
   if (isValidToken) {
+    // console.log("isValidToken", isValidToken)
     response.cookies.set("access_token", newAccessToken, { httpOnly: true });
-    response.headers.set("user_data", JSON.stringify(isValidToken.data));
+    response.headers.set("user_data", JSON.stringify(isValidToken));
     response.headers.set("user_access_token", newAccessToken);
+  } else {
+    response.cookies.delete("access_token");
+    // response.cookies.delete("refresh_token");
   }
 
   if (!accessToken && !isOptionalAuth && !isValidToken) {

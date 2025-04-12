@@ -1,10 +1,11 @@
+// app/layout.js
 import { Chakra_Petch } from "next/font/google";
 import "./globals.css";
-
 import NavbarComponent from "@/components/NavbarComponent";
 import NextTopLoader from "nextjs-toploader";
 import ThemeProvider from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+
 
 const ChakraPetch = Chakra_Petch({
   subsets: ["latin"],

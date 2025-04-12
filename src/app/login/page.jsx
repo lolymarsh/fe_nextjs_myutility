@@ -79,6 +79,7 @@ const LoginPage = () => {
       if (result?.error) {
         console.log("result.error", result.error);
         errorHandle(result.error);
+        setIsSubmitting(false);
       } else {
         toast.success("เข้าสู่ระบบสำเร็จ กำลังเปลี่ยนหน้า...");
         setTimeout(() => {
@@ -86,8 +87,9 @@ const LoginPage = () => {
         }, 2000);
       }
     } catch (error) {
+      console.log("Login failed:", error);
       setIsSubmitting(false);
-    }
+    } 
   };
 
   return (
@@ -152,14 +154,14 @@ const LoginPage = () => {
           </Form>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
-          <div className="text-sm text-center text-muted-foreground">
+          {/* <div className="text-sm text-center text-muted-foreground">
             <Link
               href="/forgot-password"
               className="hover:text-primary underline underline-offset-4"
             >
               ลืมรหัสผ่าน?
             </Link>
-          </div>
+          </div> */}
           <div className="text-sm text-center text-muted-foreground">
             ไม่มีบัญชีผู้ใช้?{" "}
             <Link

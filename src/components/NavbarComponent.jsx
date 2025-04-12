@@ -11,11 +11,9 @@ const NavbarComponent = async () => {
   const headersList = headers();
   const user_data = headersList.get("user_data")
 
-  // console.log("user_data", user_data)
-
   const navItems = [
     // { name: "เข้าสู่ระบบ", href: "/login", is_show: user_data ? false : true },
-    { name: "สิ่งที่ต้องทำ", href: "/list-todo", is_show: user_data ? true : false },
+    { name: "สิ่งที่ต้องทำ", href: "/list-program/todo", is_show: user_data ? true : false },
     { name: "โปรแกรม", href: "/list-program", is_show: true },
     { name: "ออกจากระบบ", href: "/logout", is_show: user_data ? true : false },
   ];
