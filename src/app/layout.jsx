@@ -6,7 +6,6 @@ import NextTopLoader from "nextjs-toploader";
 import ThemeProvider from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 
-
 const ChakraPetch = Chakra_Petch({
   subsets: ["latin"],
   weight: ["400", "700"],
