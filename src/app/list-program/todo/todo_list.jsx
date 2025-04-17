@@ -96,7 +96,7 @@ const TodoList = ({ userData, accessToken }) => {
       if (filters.is_active) {
         keywords.push({ field: "is_active", value: filters.is_active });
       }
-  
+
       const response = await api.post(
         "/todo/filter",
         {
@@ -113,7 +113,7 @@ const TodoList = ({ userData, accessToken }) => {
           },
         }
       );
-  
+
       if (response?.data) {
         setTasks(response.data.data || []);
         setPagination({
@@ -423,15 +423,15 @@ const TodoList = ({ userData, accessToken }) => {
           </div>
         </CardHeader>
         <CardContent className="p-6">
-          <Table>
+          <Table className="table-fixed w-full">
             <TableHeader>
               <TableRow>
-                <TableHead>ลำดับ</TableHead>
-                <TableHead>ชื่องาน</TableHead>
-                <TableHead>คำอธิบาย</TableHead>
-                <TableHead>รูปแบบ</TableHead>
-                <TableHead>สถานะ</TableHead>
-                <TableHead>การจัดการ</TableHead>
+                <TableHead className="w-[60px] min-w-[60px]">ลำดับ</TableHead>
+                <TableHead className="w-[200px] min-w-[150px] max-w-[200px]">ชื่องาน</TableHead>
+                <TableHead className="w-[300px] min-w-[200px] max-w-[300px]">คำอธิบาย</TableHead>
+                <TableHead className="w-[100px] min-w-[100px]">รูปแบบ</TableHead>
+                <TableHead className="w-[120px] min-w-[120px]">สถานะ</TableHead>
+                <TableHead className="w-[120px] min-w-[120px]">การจัดการ</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -447,8 +447,12 @@ const TodoList = ({ userData, accessToken }) => {
                 tasks.map((task) => (
                   <TableRow key={task.task_id}>
                     <TableCell>{task.seq}</TableCell>
-                    <TableCell>{task.task_name}</TableCell>
-                    <TableCell>{task.description}</TableCell>
+                    <TableCell className="truncate" title={task.task_name}>
+                      {task.task_name}
+                    </TableCell>
+                    <TableCell className="truncate" title={task.description}>
+                      {task.description}
+                    </TableCell>
                     <TableCell>
                       <Badge
                         variant={
