@@ -36,7 +36,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
-import { Trash2, Edit, ChevronLeft, ChevronRight } from "lucide-react";
+import { Trash2, Edit } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -45,7 +45,7 @@ import PaginationComponent from "@/components/PaginationComponent";
 
 const TodoList = ({ userData, accessToken }) => {
   const [tasks, setTasks] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(false);
   const [newTask, setNewTask] = useState({
     task_name: "",
     seq: 0,
@@ -81,7 +81,7 @@ const TodoList = ({ userData, accessToken }) => {
   });
 
   const fetchTasks = async (page = 1, pageSize = pagination.pageSize) => {
-    setIsLoading(true);
+    setIsPageLoading(true);
     try {
       const keywords = [];
       if (filters.search) {
@@ -126,7 +126,7 @@ const TodoList = ({ userData, accessToken }) => {
     } catch (error) {
       toast.error("ไม่สามารถดึงข้อมูลงานได้", { description: "เกิดข้อผิดพลาด" });
     } finally {
-      setIsLoading(false);
+      setIsPageLoading(false);
     }
   };
 
@@ -435,7 +435,7 @@ const TodoList = ({ userData, accessToken }) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading ? (
+              {isPageLoading ? (
                 renderSkeletonRows()
               ) : tasks.length === 0 ? (
                 <TableRow>

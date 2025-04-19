@@ -162,7 +162,7 @@ const LoginPage = () => {
               ลืมรหัสผ่าน?
             </Link>
           </div> */}
-          <div className="text-sm text-center text-muted-foreground">
+          {/* <div className="text-sm text-center text-muted-foreground">
             ไม่มีบัญชีผู้ใช้?{" "}
             <Link
               href="/register"
@@ -170,7 +170,7 @@ const LoginPage = () => {
             >
               ลงทะเบียนที่นี่
             </Link>
-          </div>
+          </div> */}
         </CardFooter>
       </Card>
     </div>
