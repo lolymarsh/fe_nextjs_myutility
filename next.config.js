@@ -1,10 +1,15 @@
 const withPWA = require("@ducanh2912/next-pwa").default({
   dest: "public",
-  register: true,
-  skipWaiting: true,
+  cacheOnFrontEndNav: true,
+  aggressiveFrontEndNavCaching: true,
+  reloadOnOnline: true,
+  swcMinify: true,
+  workboxOptions: {
+    disableDevLogs: true,
+  },
   fallbacks: {
     document: "/offline",
-  },
+  }
 });
 
 /** @type {import('next').NextConfig} */

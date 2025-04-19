@@ -109,6 +109,7 @@ define(['./workbox-1e54d6fe'], (function (workbox) { 'use strict';
       }) => "undefined" != typeof self ? self.fallback(e) : Response.error()
     }]
   }), 'GET');
+  self.__WB_DISABLE_DEV_LOGS = true;
 
 }));
 //# sourceMappingURL=sw.js.map
