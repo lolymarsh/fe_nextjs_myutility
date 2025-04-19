@@ -1,8 +1,0 @@
-{
-  "name": "LolyApp",
-  "short_name": "LolyApp",
-  "theme_color": "#ffffff",
-  "background_color": "#ffffff",
-  "display": "standalone",
-  "start_url": "https://lolyutility.vercel.app"
-}
