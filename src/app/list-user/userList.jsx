@@ -49,6 +49,7 @@ const UserList = ({ userData, accessToken }) => {
   });
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const [formData, setFormData] = useState({
     user_id: "",
     first_name: "",
@@ -103,7 +104,7 @@ const UserList = ({ userData, accessToken }) => {
 
   const handleCreateUser = async () => {
     if (!validateForm()) return;
-
+    setIsSending(true)
     try {
       const payload = {
         first_name: formData.first_name,
@@ -114,7 +115,7 @@ const UserList = ({ userData, accessToken }) => {
         password: formData.new_password,
       };
 
-      await api.post("/register", payload);
+      await api.post("/auth/register", payload);
       toast.success("สร้างผู้ใช้สำเร็จ");
       setIsDialogOpen(false);
       fetchPageData(pagination.currentPage);
@@ -123,11 +124,14 @@ const UserList = ({ userData, accessToken }) => {
       toast.error("ไม่สามารถสร้างผู้ใช้ได้", {
         description: error.response?.data?.message || "เกิดข้อผิดพลาด",
       });
+    } finally {
+      setIsSending(false);
     }
   };
 
   const handleUpdateUser = async () => {
     if (!validateForm()) return;
+    setIsSending(true)
 
     try {
       const payload = {
@@ -145,7 +149,7 @@ const UserList = ({ userData, accessToken }) => {
         payload.new_password = formData.new_password;
       }
 
-      await api.put("/user/update", payload);
+      await api.post("/user/update", payload);
       toast.success("อัปเดตผู้ใช้สำเร็จ");
       setIsDialogOpen(false);
       fetchPageData(pagination.currentPage);
@@ -154,6 +158,8 @@ const UserList = ({ userData, accessToken }) => {
       toast.error("ไม่สามารถอัปเดตผู้ใช้ได้", {
         description: error.response?.data?.message || "เกิดข้อผิดพลาด",
       });
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -224,7 +230,7 @@ const UserList = ({ userData, accessToken }) => {
         {
           keywords,
           sort_name: "created_at",
-          sort_by: "asc",
+          sort_by: "desc",
           page,
           page_size: pageSize,
         },
@@ -529,8 +535,9 @@ const UserList = ({ userData, accessToken }) => {
             </Button>
             <Button
               onClick={isEditMode ? handleUpdateUser : handleCreateUser}
+              disabled={isSending}
             >
-              {isEditMode ? "บันทึก" : "สร้าง"}
+              {isSending ? "กำลังส่ง..." : isEditMode ? "บันทึก" : "สร้าง"}
             </Button>
           </DialogFooter>
         </DialogContent>
