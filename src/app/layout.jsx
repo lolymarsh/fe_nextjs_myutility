@@ -26,6 +26,12 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+        <meta
+          name="viewport"
+          content="initial-scale=1, viewport-fit=cover, width=device-width"
+        />
+      </head>
       <body className={`${ChakraPetch.className} antialiased bg-gray-100 dark:bg-gray-900`}>
         <ThemeProvider
           attribute="class"

@@ -82,3 +82,12 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+.container {
+  height: calc(100vh - env(safe-area-inset-bottom) - env(safe-area-inset-top));
+}
+@supports (-webkit-touch-callout: none) {
+  .container {
+    height: -webkit-fill-available;
+  }
+}
