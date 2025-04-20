@@ -5,6 +5,7 @@ import NavbarComponent from "@/components/NavbarComponent";
 import NextTopLoader from "nextjs-toploader";
 import ThemeProvider from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import FooterComponent from "@/components/FooterComponent";
 
 const ChakraPetch = Chakra_Petch({
   subsets: ["latin"],
@@ -19,7 +20,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${ChakraPetch.className} antialiased bg-gray-100 dark:bg-gray-900`}>
+      <body
+        className={`${ChakraPetch.className} antialiased bg-gray-100 dark:bg-gray-900`}
+      >
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -35,7 +38,10 @@ export default function RootLayout({ children }) {
             shadow="0 0 10px #ffffff, 0 0 5px #ffffff"
           />
           <NavbarComponent />
-          {children}
+          <div className="min-h-screen flex">
+            <main className="flex-grow">{children}</main>
+          </div>
+          <FooterComponent />
         </ThemeProvider>
       </body>
     </html>
