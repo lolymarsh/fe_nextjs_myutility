@@ -61,6 +61,7 @@ const TodoList = ({ userData, accessToken }) => {
     mode: "all",
     status: "all",
     is_active: "true",
+    user_id: userData?.user_id || "all",
   });
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -95,6 +96,10 @@ const TodoList = ({ userData, accessToken }) => {
       }
       if (filters.is_active) {
         keywords.push({ field: "is_active", value: filters.is_active });
+      }
+
+      if (filters.user_id !== "all") {
+        keywords.push({ field: "user_id", value: filters.user_id });
       }
 
       const response = await api.post(
@@ -420,6 +425,19 @@ const TodoList = ({ userData, accessToken }) => {
                 <SelectItem value="completed">เสร็จสิ้น</SelectItem>
               </SelectContent>
             </Select>
+            {userData?.role === "ADMIN" && (
+              <Select
+                value={filters.user_id}
+                onValueChange={(value) => handleFilterChange("user_id", value)}
+              >
+                <SelectTrigger className="w-1/4">
+                <SelectValue placeholder="เลือกผู้ใช้งาน" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">ทั้งหมด</SelectItem>
+                <SelectItem value={userData?.user_id}>ตัวเอง</SelectItem>
+              </SelectContent>
+            </Select>)}
           </div>
         </CardHeader>
         <CardContent className="p-6">
@@ -431,6 +449,9 @@ const TodoList = ({ userData, accessToken }) => {
                 <TableHead className="w-[300px] min-w-[200px] max-w-[300px]">คำอธิบาย</TableHead>
                 <TableHead className="w-[100px] min-w-[100px]">รูปแบบ</TableHead>
                 <TableHead className="w-[120px] min-w-[120px]">สถานะ</TableHead>
+                {userData?.role === "ADMIN" && (
+                <TableHead className="w-[120px] min-w-[120px]">ผู้สร้าง</TableHead>
+                )}
                 <TableHead className="w-[120px] min-w-[120px]">การจัดการ</TableHead>
               </TableRow>
             </TableHeader>
@@ -489,6 +510,11 @@ const TodoList = ({ userData, accessToken }) => {
                         {task.status === "completed" && "เสร็จสิ้น"}
                       </Badge>
                     </TableCell>
+                    {userData?.role === "ADMIN" && (
+                      <TableCell>
+                        {task?.user_owner_email}
+                      </TableCell>
+                    )}
                     <TableCell className="flex gap-2">
                       <Button
                         variant="outline"
