@@ -22,7 +22,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Lock, Mail } from "lucide-react";
-import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 import { loginAction } from "@/action/auth";
@@ -162,15 +161,9 @@ const LoginPage = () => {
               ลืมรหัสผ่าน?
             </Link>
           </div> */}
-          {/* <div className="text-sm text-center text-muted-foreground">
-            ไม่มีบัญชีผู้ใช้?{" "}
-            <Link
-              href="/register"
-              className="hover:text-primary underline underline-offset-4"
-            >
-              ลงทะเบียนที่นี่
-            </Link>
-          </div> */}
+          <div className="text-sm text-center text-muted-foreground">
+            หากต้องการผู้ใช้งานต้องติดต่อผู้ดูแลระบบสามารถดูได้จากหน้าแรก
+          </div>
         </CardFooter>
       </Card>
     </div>
