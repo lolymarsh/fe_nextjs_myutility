@@ -43,6 +43,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import PaginationComponent from "@/components/PaginationComponent";
 import { DatePickerComponent } from "@/components/DatePickerComponent";
+import { epochMillisecondsToDate } from "@/lib/dateUtils";
 
 const TodoList = ({ userData, accessToken }) => {
   const [listWebhooks, setListWebhooks] = useState([]);
@@ -170,7 +171,7 @@ const TodoList = ({ userData, accessToken }) => {
       return;
     }
     try {
-      const payload = { ...taskForm };
+      const payload = { ...taskForm, dc_webhook_id: taskForm.webhook_id === "NO_WEBHOOK" ? "" : taskForm.webhook_id };
       const endpoint = isEditMode ? "/todo/update" : "/todo/insert";
       const response = await api.post(endpoint, payload);
       if (response?.data) {
@@ -243,7 +244,7 @@ const TodoList = ({ userData, accessToken }) => {
       description: task.description,
       mode: task.mode,
       status: task.status,
-      webhook_id: task.webhook_id || "NO_WEBHOOK",
+      webhook_id: task.dc_webhook_id || "NO_WEBHOOK",
       due_date: task.due_date || 0,
     });
     setIsEditMode(true);
@@ -408,7 +409,7 @@ const TodoList = ({ userData, accessToken }) => {
                       </SelectContent>
                     </Select>
                   </div>
-                  {taskForm.mode !== "daily" && (
+                  {taskForm.mode !== "daily" && taskForm.status !== "completed" && (
                     <div className="grid grid-cols-4 items-center gap-4">
                       <Label htmlFor="due_date" className="text-right">
                         วันแจ้งเตือน
@@ -488,9 +489,11 @@ const TodoList = ({ userData, accessToken }) => {
               <TableRow>
                 <TableHead className="w-[60px] min-w-[60px]">ลำดับ</TableHead>
                 <TableHead className="w-[200px] min-w-[150px] max-w-[200px]">ชื่องาน</TableHead>
-                <TableHead className="w-[300px] min-w-[200px] max-w-[300px]">คำอธิบาย</TableHead>
+                <TableHead className="w-[200px] min-w-[200px] max-w-[200px]">คำอธิบาย</TableHead>
                 <TableHead className="w-[100px] min-w-[100px]">รูปแบบ</TableHead>
                 <TableHead className="w-[120px] min-w-[120px]">สถานะ</TableHead>
+                <TableHead className="w-[120px] min-w-[120px]">Webhook</TableHead>
+                <TableHead className="w-[120px] min-w-[120px]">วันแจ้งเตือน</TableHead>
                 {userData?.role === "ADMIN" && (
                   <TableHead className="w-[120px] min-w-[120px]">ผู้สร้าง</TableHead>
                 )}
@@ -510,11 +513,11 @@ const TodoList = ({ userData, accessToken }) => {
                 tasks.map((task) => (
                   <TableRow key={task.task_id}>
                     <TableCell>{task.seq}</TableCell>
-                    <TableCell className="truncate" title={task.task_name}>
-                      {task.task_name}
+                    <TableCell title={task.task_name}>
+                      {task.task_name.slice(0, 20) + "..."}
                     </TableCell>
-                    <TableCell className="truncate" title={task.description}>
-                      {task.description}
+                    <TableCell title={task.description}>
+                      {task.description.slice(0, 20) + "..."}
                     </TableCell>
                     <TableCell>
                       <Badge
@@ -552,8 +555,10 @@ const TodoList = ({ userData, accessToken }) => {
                         {task.status === "completed" && "เสร็จสิ้น"}
                       </Badge>
                     </TableCell>
+                    <TableCell>{task.dc_webhook_name}</TableCell>
+                    <TableCell>{epochMillisecondsToDate(task.due_date)}</TableCell>
                     {userData?.role === "ADMIN" && (
-                      <TableCell>{task?.user_owner_email}</TableCell>
+                      <TableCell>{task?.user_owner_email.slice(0, 20) + "..."}</TableCell>
                     )}
                     <TableCell className="flex gap-2">
                       <Button

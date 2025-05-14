@@ -22,3 +22,17 @@ export const toEpochSeconds = (date) => {
 export const toEpochMilliseconds = (date) => {
   return dayjs(date).valueOf();
 }
+
+export const epochSecondsToDate = (epochSeconds) => {
+  if (!epochSeconds || isNaN(epochSeconds || epochSeconds === 0)) {
+    return null; 
+  }
+  return dayjs.unix(epochSeconds).format("YYYY-MM-DD");
+}
+
+export const epochMillisecondsToDate = (epochMilliseconds) => {
+  if (!epochMilliseconds || isNaN(epochMilliseconds || epochMilliseconds === 0)) {
+    return null; 
+  }
+  return dayjs(epochMilliseconds).format("YYYY-MM-DD");
+}
