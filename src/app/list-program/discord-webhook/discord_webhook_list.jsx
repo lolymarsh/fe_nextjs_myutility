@@ -44,15 +44,14 @@ import PaginationComponent from "@/components/PaginationComponent";
 const DiscordWebHookList = ({ userData, accessToken }) => {
   const [webhooks, setWebhooks] = useState([]);
   const [isPageLoading, setIsPageLoading] = useState(false);
-  const [newWebhook, setNewWebhook] = useState({
+  const [webhookForm, setWebhookForm] = useState({
+    dc_webhook_id: null,
     webhook_name: "",
     webhook_url: "",
   });
-  const [editWebhook, setEditWebhook] = useState(null);
-  const [isAddOpen, setIsAddOpen] = useState(false);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [isNewWebhookUrlVisible, setIsNewWebhookUrlVisible] = useState(false);
-  const [isEditWebhookUrlVisible, setIsEditWebhookUrlVisible] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isWebhookUrlVisible, setIsWebhookUrlVisible] = useState(false);
   const [filters, setFilters] = useState({
     search: "",
     user_id: userData?.user_id || "all",
@@ -136,43 +135,30 @@ const DiscordWebHookList = ({ userData, accessToken }) => {
     setPagination((prev) => ({ ...prev, currentPage: 1 }));
   };
 
-  const handleAddWebhook = async () => {
-    if (!validateWebhook(newWebhook)) {
+  const handleSubmitWebhook = async () => {
+    if (!validateWebhook(webhookForm)) {
       return;
     }
     try {
-      const response = await api.post("/discord_webhook/insert", newWebhook);
+      const payload = {
+        webhook_name: webhookForm.webhook_name,
+        webhook_url: webhookForm.webhook_url,
+      };
+      if (isEditMode) {
+        payload.dc_webhook_id = webhookForm.dc_webhook_id;
+      }
+      const endpoint = isEditMode ? "/discord_webhook/update" : "/discord_webhook/insert";
+      const response = await api.post(endpoint, payload);
       if (response?.data) {
-        toast.success("เพิ่ม webhook เรียบร้อย");
-        setIsAddOpen(false);
-        setNewWebhook({ webhook_name: "", webhook_url: "" });
-        setIsNewWebhookUrlVisible(false);
+        toast.success(isEditMode ? "อัปเดต webhook เรียบร้อย" : "เพิ่ม webhook เรียบร้อย");
+        setIsDialogOpen(false);
+        resetWebhookForm();
         fetchWebhooks(pagination.currentPage);
       }
     } catch (error) {
-      toast.error("ไม่สามารถเพิ่ม webhook ได้", { description: "เกิดข้อผิดพลาด" });
-    }
-  };
-
-  const handleUpdateWebhook = async () => {
-    if (!validateWebhook(editWebhook)) {
-      return;
-    }
-    try {
-      const response = await api.post("/discord_webhook/update", {
-        dc_webhook_id: editWebhook.dc_webhook_id,
-        webhook_name: editWebhook.webhook_name,
-        webhook_url: editWebhook.webhook_url,
+      toast.error(isEditMode ? "ไม่สามารถอัปเดต webhook ได้" : "ไม่สามารถเพิ่ม webhook ได้", {
+        description: "เกิดข้อผิดพลาด",
       });
-      if (response?.data) {
-        toast.success("อัปเดต webhook เรียบร้อย");
-        setIsEditOpen(false);
-        setEditWebhook(null);
-        setIsEditWebhookUrlVisible(false);
-        fetchWebhooks(pagination.currentPage);
-      }
-    } catch (error) {
-      toast.error("ไม่สามารถอัปเดต webhook ได้", { description: "เกิดข้อผิดพลาด" });
     }
   };
 
@@ -208,6 +194,26 @@ const DiscordWebHookList = ({ userData, accessToken }) => {
       currentPage: 1,
     }));
     fetchWebhooks(1, newPageSize);
+  };
+
+  const resetWebhookForm = () => {
+    setWebhookForm({
+      dc_webhook_id: null,
+      webhook_name: "",
+      webhook_url: "",
+    });
+    setIsEditMode(false);
+    setIsWebhookUrlVisible(false);
+  };
+
+  const openEditDialog = (webhook) => {
+    setWebhookForm({
+      dc_webhook_id: webhook.dc_webhook_id,
+      webhook_name: webhook.webhook_name,
+      webhook_url: webhook.webhook_url,
+    });
+    setIsEditMode(true);
+    setIsDialogOpen(true);
   };
 
   useEffect(() => {
@@ -246,13 +252,16 @@ const DiscordWebHookList = ({ userData, accessToken }) => {
         <CardHeader>
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-2xl font-bold">รายการ Webhook</h1>
-            <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+            <Dialog open={isDialogOpen} onOpenChange={(open) => {
+              setIsDialogOpen(open);
+              if (!open) resetWebhookForm();
+            }}>
               <DialogTrigger asChild>
-                <Button>เพิ่ม Webhook</Button>
+                <Button onClick={() => setIsDialogOpen(true)}>เพิ่ม Webhook</Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>เพิ่ม Webhook</DialogTitle>
+                  <DialogTitle>{isEditMode ? "แก้ไข Webhook" : "เพิ่ม Webhook"}</DialogTitle>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="grid grid-cols-4 items-center gap-4">
@@ -261,9 +270,9 @@ const DiscordWebHookList = ({ userData, accessToken }) => {
                     </Label>
                     <Input
                       id="webhook_name"
-                      value={newWebhook.webhook_name}
+                      value={webhookForm.webhook_name}
                       onChange={(e) =>
-                        setNewWebhook({ ...newWebhook, webhook_name: e.target.value })
+                        setWebhookForm({ ...webhookForm, webhook_name: e.target.value })
                       }
                       className="col-span-3"
                     />
@@ -275,10 +284,10 @@ const DiscordWebHookList = ({ userData, accessToken }) => {
                     <div className="col-span-3 relative">
                       <Input
                         id="webhook_url"
-                        type={isNewWebhookUrlVisible ? "text" : "password"}
-                        value={newWebhook.webhook_url}
+                        type={isWebhookUrlVisible ? "text" : "password"}
+                        value={webhookForm.webhook_url}
                         onChange={(e) =>
-                          setNewWebhook({ ...newWebhook, webhook_url: e.target.value })
+                          setWebhookForm({ ...webhookForm, webhook_url: e.target.value })
                         }
                         className="pr-10"
                       />
@@ -286,9 +295,9 @@ const DiscordWebHookList = ({ userData, accessToken }) => {
                         variant="ghost"
                         size="icon"
                         className="absolute right-2 top-1/2 transform -translate-y-1/2"
-                        onClick={() => setIsNewWebhookUrlVisible(!isNewWebhookUrlVisible)}
+                        onClick={() => setIsWebhookUrlVisible(!isWebhookUrlVisible)}
                       >
-                        {isNewWebhookUrlVisible ? (
+                        {isWebhookUrlVisible ? (
                           <EyeOff className="h-4 w-4" />
                         ) : (
                           <Eye className="h-4 w-4" />
@@ -297,7 +306,9 @@ const DiscordWebHookList = ({ userData, accessToken }) => {
                     </div>
                   </div>
                 </div>
-                <Button onClick={handleAddWebhook}>เพิ่ม Webhook</Button>
+                <Button onClick={handleSubmitWebhook}>
+                  {isEditMode ? "อัปเดต Webhook" : "เพิ่ม Webhook"}
+                </Button>
               </DialogContent>
             </Dialog>
           </div>
@@ -375,14 +386,7 @@ const DiscordWebHookList = ({ userData, accessToken }) => {
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => {
-                          setEditWebhook({
-                            dc_webhook_id: webhook.dc_webhook_id,
-                            webhook_name: webhook.webhook_name,
-                            webhook_url: webhook.webhook_url,
-                          });
-                          setIsEditOpen(true);
-                        }}
+                        onClick={() => openEditDialog(webhook)}
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -431,60 +435,6 @@ const DiscordWebHookList = ({ userData, accessToken }) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>แก้ไข Webhook</DialogTitle>
-          </DialogHeader>
-          {editWebhook && (
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="webhook_name" className="text-right">
-                  ชื่อ Webhook
-                </Label>
-                <Input
-                  id="webhook_name"
-                  value={editWebhook.webhook_name}
-                  onChange={(e) =>
-                    setEditWebhook({ ...editWebhook, webhook_name: e.target.value })
-                  }
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="webhook_url" className="text-right">
-                  URL Webhook
-                </Label>
-                <div className="col-span-3 relative">
-                  <Input
-                    id="webhook_url"
-                    type={isEditWebhookUrlVisible ? "text" : "password"}
-                    value={editWebhook.webhook_url}
-                    onChange={(e) =>
-                      setEditWebhook({ ...editWebhook, webhook_url: e.target.value })
-                    }
-                    className="pr-10"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2"
-                    onClick={() => setIsEditWebhookUrlVisible(!isEditWebhookUrlVisible)}
-                  >
-                    {isEditWebhookUrlVisible ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-          <Button onClick={handleUpdateWebhook}>อัปเดต Webhook</Button>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

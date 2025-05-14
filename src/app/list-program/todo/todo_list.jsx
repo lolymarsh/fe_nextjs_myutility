@@ -42,20 +42,24 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import PaginationComponent from "@/components/PaginationComponent";
+import { DatePickerComponent } from "@/components/DatePickerComponent";
 
 const TodoList = ({ userData, accessToken }) => {
+  const [listWebhooks, setListWebhooks] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [isPageLoading, setIsPageLoading] = useState(false);
-  const [newTask, setNewTask] = useState({
+  const [taskForm, setTaskForm] = useState({
+    task_id: null,
     task_name: "",
     seq: 0,
     description: "",
     mode: "daily",
     status: "pending",
+    webhook_id: "NO_WEBHOOK",
+    due_date: 0,
   });
-  const [editTask, setEditTask] = useState(null);
-  const [isAddOpen, setIsAddOpen] = useState(false);
-  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [filters, setFilters] = useState({
     search: "",
     mode: "all",
@@ -97,27 +101,17 @@ const TodoList = ({ userData, accessToken }) => {
       if (filters.is_active) {
         keywords.push({ field: "is_active", value: filters.is_active });
       }
-
       if (filters.user_id !== "all") {
         keywords.push({ field: "user_id", value: filters.user_id });
       }
 
-      const response = await api.post(
-        "/todo/filter",
-        {
-          keywords,
-          sort_name: "seq",
-          sort_by: "asc",
-          page,
-          page_size: pageSize,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "x-auth-token": `${accessToken}`,
-          },
-        }
-      );
+      const response = await api.post("/todo/filter", {
+        keywords,
+        sort_name: "seq",
+        sort_by: "asc",
+        page,
+        page_size: pageSize,
+      });
 
       if (response?.data) {
         setTasks(response.data.data || []);
@@ -132,6 +126,25 @@ const TodoList = ({ userData, accessToken }) => {
       toast.error("ไม่สามารถดึงข้อมูลงานได้", { description: "เกิดข้อผิดพลาด" });
     } finally {
       setIsPageLoading(false);
+    }
+  };
+
+  const fetchWebhooks = async (page = 1, pageSize = 100) => {
+    try {
+      const keywords = [];
+      const respListWebhooks = await api.post("/discord_webhook/filter", {
+        keywords,
+        sort_name: "created_at",
+        sort_by: "desc",
+        page,
+        page_size: pageSize,
+      });
+
+      if (respListWebhooks?.data) {
+        setListWebhooks(respListWebhooks.data.data || []);
+      }
+    } catch (error) {
+      toast.error("ไม่สามารถดึงข้อมูล Webhook ได้", { description: "เกิดข้อผิดพลาด" });
     }
   };
 
@@ -152,80 +165,34 @@ const TodoList = ({ userData, accessToken }) => {
     setPagination((prev) => ({ ...prev, currentPage: 1 }));
   };
 
-  const handleAddTask = async () => {
-    if (!validateTask(newTask)) {
+  const handleSubmitTask = async () => {
+    if (!validateTask(taskForm)) {
       return;
     }
     try {
-      const response = await api.post(
-        "/todo/insert",
-        { ...newTask },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "x-auth-token": `${accessToken}`,
-          },
-        }
-      );
+      const payload = { ...taskForm };
+      const endpoint = isEditMode ? "/todo/update" : "/todo/insert";
+      const response = await api.post(endpoint, payload);
       if (response?.data) {
-        toast.success("เพิ่มงานเรียบร้อย");
-        setIsAddOpen(false);
-        setNewTask({
-          task_name: "",
-          seq: 0,
-          description: "",
-          mode: "daily",
-          status: "pending",
-        });
+        toast.success(isEditMode ? "อัปเดตงานเรียบร้อย" : "เพิ่มงานเรียบร้อย");
+        setIsDialogOpen(false);
+        resetTaskForm();
         fetchTasks(pagination.currentPage);
       }
     } catch (error) {
-      toast.error("ไม่สามารถเพิ่มงานได้", { description: "เกิดข้อผิดพลาด" });
-    }
-  };
-
-  const handleUpdateTask = async () => {
-    if (!validateTask(editTask)) {
-      return;
-    }
-    try {
-      const response = await api.post(
-        "/todo/update",
-        { ...editTask },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "x-auth-token": `${accessToken}`,
-          },
-        }
-      );
-      if (response?.data) {
-        toast.success("อัปเดตงานเรียบร้อย");
-        setIsEditOpen(false);
-        setEditTask(null);
-        fetchTasks(pagination.currentPage);
-      }
-    } catch (error) {
-      toast.error("ไม่สามารถอัปเดตงานได้", { description: "เกิดข้อผิดพลาด" });
+      toast.error(isEditMode ? "ไม่สามารถอัปเดตงานได้" : "ไม่สามารถเพิ่มงานได้", {
+        description: "เกิดข้อผิดพลาด",
+      });
     }
   };
 
   const handleDeleteTask = async () => {
     try {
       setIsLoadingDelete(true);
-      const response = await api.post(
-        "/todo/update/is_active",
-        {
-          task_id: taskIdToDelete,
-          is_active: false,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "x-auth-token": `${accessToken}`,
-          },
-        }
-      );
+      const response = await api.post("/todo/update/is_active", {
+        task_id: taskIdToDelete,
+        is_active: false,
+      });
       if (response?.data) {
         toast.success("ลบงานเรียบร้อย");
         fetchTasks(pagination.currentPage);
@@ -253,6 +220,39 @@ const TodoList = ({ userData, accessToken }) => {
     }));
     fetchTasks(1, newPageSize);
   };
+
+  const resetTaskForm = () => {
+    setTaskForm({
+      task_id: null,
+      task_name: "",
+      seq: 0,
+      description: "",
+      mode: "daily",
+      status: "pending",
+      webhook_id: "NO_WEBHOOK",
+      due_date: 0,
+    });
+    setIsEditMode(false);
+  };
+
+  const openEditDialog = (task) => {
+    setTaskForm({
+      task_id: task.task_id,
+      task_name: task.task_name,
+      seq: task.seq,
+      description: task.description,
+      mode: task.mode,
+      status: task.status,
+      webhook_id: task.webhook_id || "NO_WEBHOOK",
+      due_date: task.due_date || 0,
+    });
+    setIsEditMode(true);
+    setIsDialogOpen(true);
+  };
+
+  useEffect(() => {
+    fetchWebhooks();
+  }, []);
 
   useEffect(() => {
     fetchTasks(pagination.currentPage);
@@ -291,13 +291,16 @@ const TodoList = ({ userData, accessToken }) => {
         <CardHeader>
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-2xl font-bold">รายการงาน</h1>
-            <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+            <Dialog open={isDialogOpen} onOpenChange={(open) => {
+              setIsDialogOpen(open);
+              if (!open) resetTaskForm();
+            }}>
               <DialogTrigger asChild>
-                <Button>เพิ่มงาน</Button>
+                <Button onClick={() => setIsDialogOpen(true)}>เพิ่มงาน</Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>เพิ่มงานใหม่</DialogTitle>
+                  <DialogTitle>{isEditMode ? "แก้ไขงาน" : "เพิ่มงานใหม่"}</DialogTitle>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="grid grid-cols-4 items-center gap-4">
@@ -306,9 +309,9 @@ const TodoList = ({ userData, accessToken }) => {
                     </Label>
                     <Input
                       id="task_name"
-                      value={newTask.task_name}
+                      value={taskForm.task_name}
                       onChange={(e) =>
-                        setNewTask({ ...newTask, task_name: e.target.value })
+                        setTaskForm({ ...taskForm, task_name: e.target.value })
                       }
                       className="col-span-3"
                     />
@@ -320,9 +323,9 @@ const TodoList = ({ userData, accessToken }) => {
                     <Input
                       id="seq"
                       type="number"
-                      value={newTask.seq}
+                      value={taskForm.seq}
                       onChange={(e) =>
-                        setNewTask({ ...newTask, seq: parseInt(e.target.value) })
+                        setTaskForm({ ...taskForm, seq: parseInt(e.target.value) })
                       }
                       className="col-span-3"
                     />
@@ -333,9 +336,9 @@ const TodoList = ({ userData, accessToken }) => {
                     </Label>
                     <Textarea
                       id="description"
-                      value={newTask.description}
+                      value={taskForm.description}
                       onChange={(e) =>
-                        setNewTask({ ...newTask, description: e.target.value })
+                        setTaskForm({ ...taskForm, description: e.target.value })
                       }
                       className="col-span-3"
                     />
@@ -345,9 +348,9 @@ const TodoList = ({ userData, accessToken }) => {
                       รูปแบบ
                     </Label>
                     <Select
-                      value={newTask.mode}
+                      value={taskForm.mode}
                       onValueChange={(value) =>
-                        setNewTask({ ...newTask, mode: value })
+                        setTaskForm({ ...taskForm, mode: value })
                       }
                     >
                       <SelectTrigger className="col-span-3">
@@ -367,9 +370,9 @@ const TodoList = ({ userData, accessToken }) => {
                       สถานะ
                     </Label>
                     <Select
-                      value={newTask.status}
+                      value={taskForm.status}
                       onValueChange={(value) =>
-                        setNewTask({ ...newTask, status: value })
+                        setTaskForm({ ...taskForm, status: value })
                       }
                     >
                       <SelectTrigger className="col-span-3">
@@ -382,8 +385,46 @@ const TodoList = ({ userData, accessToken }) => {
                       </SelectContent>
                     </Select>
                   </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="webhook" className="text-right">
+                      เลือก Webhook
+                    </Label>
+                    <Select
+                      value={taskForm.webhook_id}
+                      onValueChange={(value) =>
+                        setTaskForm({ ...taskForm, webhook_id: value })
+                      }
+                    >
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="เลือก Webhook" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="NO_WEBHOOK">ไม่ต้องส่ง Webhook</SelectItem>
+                        {listWebhooks.map((webhook) => (
+                          <SelectItem key={webhook.dc_webhook_id} value={webhook.dc_webhook_id}>
+                            {webhook.webhook_name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {taskForm.mode !== "daily" && (
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="due_date" className="text-right">
+                        วันแจ้งเตือน
+                      </Label>
+                      <DatePickerComponent
+                        value={taskForm.due_date}
+                        onChange={(value) =>
+                          setTaskForm({ ...taskForm, due_date: value })
+                        }
+                      />
+                    </div>
+                  )}
                 </div>
-                <Button onClick={handleAddTask}>เพิ่มงาน</Button>
+                <Button onClick={handleSubmitTask}>
+                  {isEditMode ? "อัปเดตงาน" : "เพิ่มงาน"}
+                </Button>
               </DialogContent>
             </Dialog>
           </div>
@@ -431,13 +472,14 @@ const TodoList = ({ userData, accessToken }) => {
                 onValueChange={(value) => handleFilterChange("user_id", value)}
               >
                 <SelectTrigger className="w-1/4">
-                <SelectValue placeholder="เลือกผู้ใช้งาน" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">ทั้งหมด</SelectItem>
-                <SelectItem value={userData?.user_id}>ตัวเอง</SelectItem>
-              </SelectContent>
-            </Select>)}
+                  <SelectValue placeholder="เลือกผู้ใช้งาน" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">ทั้งหมด</SelectItem>
+                  <SelectItem value={userData?.user_id}>ตัวเอง</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
           </div>
         </CardHeader>
         <CardContent className="p-6">
@@ -450,7 +492,7 @@ const TodoList = ({ userData, accessToken }) => {
                 <TableHead className="w-[100px] min-w-[100px]">รูปแบบ</TableHead>
                 <TableHead className="w-[120px] min-w-[120px]">สถานะ</TableHead>
                 {userData?.role === "ADMIN" && (
-                <TableHead className="w-[120px] min-w-[120px]">ผู้สร้าง</TableHead>
+                  <TableHead className="w-[120px] min-w-[120px]">ผู้สร้าง</TableHead>
                 )}
                 <TableHead className="w-[120px] min-w-[120px]">การจัดการ</TableHead>
               </TableRow>
@@ -460,7 +502,7 @@ const TodoList = ({ userData, accessToken }) => {
                 renderSkeletonRows()
               ) : tasks.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center">
+                  <TableCell colSpan={userData?.role === "ADMIN" ? 7 : 6} className="text-center">
                     ไม่พบงาน
                   </TableCell>
                 </TableRow>
@@ -511,25 +553,13 @@ const TodoList = ({ userData, accessToken }) => {
                       </Badge>
                     </TableCell>
                     {userData?.role === "ADMIN" && (
-                      <TableCell>
-                        {task?.user_owner_email}
-                      </TableCell>
+                      <TableCell>{task?.user_owner_email}</TableCell>
                     )}
                     <TableCell className="flex gap-2">
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => {
-                          setEditTask({
-                            task_id: task.task_id,
-                            task_name: task.task_name,
-                            seq: task.seq,
-                            description: task.description,
-                            mode: task.mode,
-                            status: task.status,
-                          });
-                          setIsEditOpen(true);
-                        }}
+                        onClick={() => openEditDialog(task)}
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -575,101 +605,6 @@ const TodoList = ({ userData, accessToken }) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>แก้ไขงาน</DialogTitle>
-          </DialogHeader>
-          {editTask && (
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="task_name" className="text-right">
-                  ชื่องาน
-                </Label>
-                <Input
-                  id="task_name"
-                  value={editTask.task_name}
-                  onChange={(e) =>
-                    setEditTask({ ...editTask, task_name: e.target.value })
-                  }
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="seq" className="text-right">
-                  ลำดับ
-                </Label>
-                <Input
-                  id="seq"
-                  type="number"
-                  value={editTask.seq}
-                  onChange={(e) =>
-                    setEditTask({ ...editTask, seq: parseInt(e.target.value) })
-                  }
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="description" className="text-right">
-                  คำอธิบาย
-                </Label>
-                <Textarea
-                  id="description"
-                  value={editTask.description}
-                  onChange={(e) =>
-                    setEditTask({ ...editTask, description: e.target.value })
-                  }
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="mode" className="text-right">
-                  รูปแบบ
-                </Label>
-                <Select
-                  value={editTask.mode}
-                  onValueChange={(value) =>
-                    setEditTask({ ...editTask, mode: value })
-                  }
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="เลือกรูปแบบ" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="daily">รายวัน</SelectItem>
-                    <SelectItem value="weekly">รายสัปดาห์</SelectItem>
-                    <SelectItem value="monthly">รายเดือน</SelectItem>
-                    <SelectItem value="yearly">รายปี</SelectItem>
-                    <SelectItem value="one_time">ครั้งเดียว</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="status" className="text-right">
-                  สถานะ
-                </Label>
-                <Select
-                  value={editTask.status}
-                  onValueChange={(value) =>
-                    setEditTask({ ...editTask, status: value })
-                  }
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="เลือกสถานะ" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pending">รอดำเนินการ</SelectItem>
-                    <SelectItem value="in_progress">กำลังดำเนินการ</SelectItem>
-                    <SelectItem value="completed">เสร็จสิ้น</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          )}
-          <Button onClick={handleUpdateTask}>อัปเดตงาน</Button>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
