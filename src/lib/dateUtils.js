@@ -25,14 +25,14 @@ export const toEpochMilliseconds = (date) => {
 
 export const epochSecondsToDate = (epochSeconds) => {
   if (!epochSeconds || isNaN(epochSeconds || epochSeconds === 0)) {
-    return null; 
+    return "-"; 
   }
-  return dayjs.unix(epochSeconds).format("YYYY-MM-DD");
+  return dayjs.unix(epochSeconds).format("DD/MM/YYYY HH:mm:ss");
 }
 
 export const epochMillisecondsToDate = (epochMilliseconds) => {
   if (!epochMilliseconds || isNaN(epochMilliseconds || epochMilliseconds === 0)) {
-    return null; 
+    return "-"; 
   }
-  return dayjs(epochMilliseconds).format("YYYY-MM-DD");
+  return dayjs(epochMilliseconds).format("DD/MM/YYYY HH:mm:ss");
 }

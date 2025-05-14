@@ -33,6 +33,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { epochMillisecondsToDate } from "@/lib/dateUtils";
 
 const UserList = ({ userData, accessToken }) => {
   const [pageData, setPageData] = useState([]);
@@ -392,10 +393,10 @@ const UserList = ({ userData, accessToken }) => {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {user.created_at > 0 ? dayjs(user.created_at).format("DD/MM/YYYY HH:mm:ss") : "-"}
+                        {epochMillisecondsToDate(user.created_at)}
                       </TableCell>
                       <TableCell>
-                        {user.updated_at > 0 ? dayjs(user.updated_at).format("DD/MM/YYYY HH:mm:ss") : "-"}
+                        {epochMillisecondsToDate(user.updated_at)}
                       </TableCell>
                       <TableCell className="flex gap-2 justify-center">
                         <Button

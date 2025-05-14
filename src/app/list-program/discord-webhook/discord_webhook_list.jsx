@@ -40,6 +40,7 @@ import { toast } from "sonner";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import PaginationComponent from "@/components/PaginationComponent";
+import { epochMillisecondsToDate } from "@/lib/dateUtils";
 
 const DiscordWebHookList = ({ userData, accessToken }) => {
   const [webhooks, setWebhooks] = useState([]);
@@ -377,7 +378,7 @@ const DiscordWebHookList = ({ userData, accessToken }) => {
                         : webhook.webhook_url}
                     </TableCell>
                     <TableCell>
-                      {new Date(webhook.created_at * 1000).toLocaleDateString("th-TH")}
+                      {epochMillisecondsToDate(webhook.created_at)}
                     </TableCell>
                     {userData?.role === "ADMIN" && (
                       <TableCell>{webhook.user_email || "N/A"}</TableCell>
