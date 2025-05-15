@@ -36,3 +36,10 @@ export const epochMillisecondsToDate = (epochMilliseconds) => {
   }
   return dayjs(epochMilliseconds).format("DD/MM/YYYY HH:mm:ss");
 }
+
+export const epochMillisecondsToOnlyDate = (epochMilliseconds) => {
+  if (!epochMilliseconds || isNaN(epochMilliseconds || epochMilliseconds === 0)) {
+    return "-"; 
+  }
+  return dayjs(epochMilliseconds).format("DD/MM/YYYY");
+}

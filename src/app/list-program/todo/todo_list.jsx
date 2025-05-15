@@ -42,8 +42,9 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import PaginationComponent from "@/components/PaginationComponent";
-import { DatePickerComponent } from "@/components/DatePickerComponent";
-import { epochMillisecondsToDate } from "@/lib/dateUtils";
+import {  epochMillisecondsToOnlyDate } from "@/lib/dateUtils";
+import { Calendar } from "@/components/ui/calendar";
+import dayjs from "dayjs";
 
 const TodoList = ({ userData, accessToken }) => {
   const [listWebhooks, setListWebhooks] = useState([]);
@@ -132,7 +133,10 @@ const TodoList = ({ userData, accessToken }) => {
 
   const fetchWebhooks = async (page = 1, pageSize = 100) => {
     try {
-      const keywords = [];
+      const keywords = [{
+        "field": "user_id",
+        "value": userData?.user_id
+      }];
       const respListWebhooks = await api.post("/discord_webhook/filter", {
         keywords,
         sort_name: "created_at",
@@ -171,7 +175,8 @@ const TodoList = ({ userData, accessToken }) => {
       return;
     }
     try {
-      const payload = { ...taskForm, dc_webhook_id: taskForm.webhook_id === "NO_WEBHOOK" ? "" : taskForm.webhook_id };
+      const payload = { ...taskForm, dc_webhook_id: taskForm.webhook_id === "NO_WEBHOOK" ? "" : taskForm.webhook_id, due_date: dayjs(taskForm.due_date).valueOf() };
+
       const endpoint = isEditMode ? "/todo/update" : "/todo/insert";
       const response = await api.post(endpoint, payload);
       if (response?.data) {
@@ -414,12 +419,14 @@ const TodoList = ({ userData, accessToken }) => {
                       <Label htmlFor="due_date" className="text-right">
                         วันแจ้งเตือน
                       </Label>
-                      <DatePickerComponent
-                        value={taskForm.due_date}
-                        onChange={(value) =>
-                          setTaskForm({ ...taskForm, due_date: value })
-                        }
-                      />
+                       <Calendar
+                                mode="single"
+                                selected={taskForm.due_date}
+                                onSelect={(selectedDate) => {
+                                  setTaskForm({ ...taskForm, due_date: selectedDate });
+                                }}
+                                initialFocus
+                              />
                     </div>
                   )}
                 </div>
@@ -556,7 +563,7 @@ const TodoList = ({ userData, accessToken }) => {
                       </Badge>
                     </TableCell>
                     <TableCell>{task.dc_webhook_name}</TableCell>
-                    <TableCell>{epochMillisecondsToDate(task.due_date)}</TableCell>
+                    <TableCell>{epochMillisecondsToOnlyDate(task.due_date)}</TableCell>
                     {userData?.role === "ADMIN" && (
                       <TableCell>{task?.user_owner_email.slice(0, 20) + "..."}</TableCell>
                     )}
