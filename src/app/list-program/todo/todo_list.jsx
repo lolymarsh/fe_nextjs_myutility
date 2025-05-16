@@ -302,8 +302,8 @@ const TodoList = ({ userData, accessToken }) => {
     <div className="container mx-auto p-4">
       <Card className="shadow-md">
         <CardHeader>
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold">รายการงาน</h1>
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold">สิ่งที่ต้องทำ</h1>
             <Dialog open={isDialogOpen} onOpenChange={(open) => {
               setIsDialogOpen(open);
               if (!open) resetTaskForm();
@@ -448,6 +448,11 @@ const TodoList = ({ userData, accessToken }) => {
               </DialogContent>
             </Dialog>
           </div>
+        <div className="mb-4">
+          {/* description gray text */}
+          <p className="text-gray-500">หากเป็นรายวันจะแจ้งเตือนทุกๆ 18:00</p>
+          <p className="text-gray-500">หากเป็นครั้งเดียวจะแจ้งเตือนตามวันที่กำหนดก่อน 7 วัน</p>
+        </div>
 
           <div className="flex gap-4 mb-4">
             <Input
