@@ -421,11 +421,11 @@ const TodoList = ({ userData, accessToken }) => {
                       </Label>
                        <Calendar
                                 mode="single"
-                                selected={taskForm.due_date}
+                                selected={dayjs(taskForm.due_date).toDate()}
                                 onSelect={(selectedDate) => {
                                   setTaskForm({ ...taskForm, due_date: selectedDate });
                                 }}
-                                initialFocus
+                                
                               />
                     </div>
                   )}
