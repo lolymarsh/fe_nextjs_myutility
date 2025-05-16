@@ -175,7 +175,12 @@ const TodoList = ({ userData, accessToken }) => {
       return;
     }
     try {
-      const payload = { ...taskForm, dc_webhook_id: taskForm.webhook_id === "NO_WEBHOOK" ? "" : taskForm.webhook_id, due_date: dayjs(taskForm.due_date).valueOf() };
+      const payload = { 
+        ...taskForm, 
+        dc_webhook_id: taskForm.mode === "one_time" && taskForm.status === "completed" ? "" : 
+                       taskForm.webhook_id === "NO_WEBHOOK" ? "" : taskForm.webhook_id, 
+        due_date: taskForm.status === "completed" ? 0 : dayjs(taskForm.due_date).valueOf() || 0
+      };
 
       const endpoint = isEditMode ? "/todo/update" : "/todo/insert";
       const response = await api.post(endpoint, payload);
@@ -291,6 +296,8 @@ const TodoList = ({ userData, accessToken }) => {
       ));
   };
 
+  const currentEpochMili = dayjs().startOf('day').valueOf();
+
   return (
     <div className="container mx-auto p-4">
       <Card className="shadow-md">
@@ -364,9 +371,9 @@ const TodoList = ({ userData, accessToken }) => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="daily">รายวัน</SelectItem>
-                        <SelectItem value="weekly">รายสัปดาห์</SelectItem>
+                        {/* <SelectItem value="weekly">รายสัปดาห์</SelectItem>
                         <SelectItem value="monthly">รายเดือน</SelectItem>
-                        <SelectItem value="yearly">รายปี</SelectItem>
+                        <SelectItem value="yearly">รายปี</SelectItem> */}
                         <SelectItem value="one_time">ครั้งเดียว</SelectItem>
                       </SelectContent>
                     </Select>
@@ -391,7 +398,8 @@ const TodoList = ({ userData, accessToken }) => {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
+                  {taskForm.status !== "completed" && (
+                    <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="webhook" className="text-right">
                       เลือก Webhook
                     </Label>
@@ -414,7 +422,10 @@ const TodoList = ({ userData, accessToken }) => {
                       </SelectContent>
                     </Select>
                   </div>
-                  {taskForm.mode !== "daily" && taskForm.status !== "completed" && (
+                  )}
+                  {taskForm.mode !== "daily" && taskForm.status !== "completed" && taskForm.webhook_id !== "NO_WEBHOOK" && (
+                   
+                    
                     <div className="grid grid-cols-4 items-center gap-4">
                       <Label htmlFor="due_date" className="text-right">
                         วันแจ้งเตือน
@@ -428,6 +439,7 @@ const TodoList = ({ userData, accessToken }) => {
                                 
                               />
                     </div>
+                   
                   )}
                 </div>
                 <Button onClick={handleSubmitTask}>
@@ -563,7 +575,13 @@ const TodoList = ({ userData, accessToken }) => {
                       </Badge>
                     </TableCell>
                     <TableCell>{task.dc_webhook_name}</TableCell>
-                    <TableCell>{epochMillisecondsToOnlyDate(task.due_date)}</TableCell>
+                    <TableCell>
+                      {task.due_date > 0 && task.due_date < currentEpochMili ? (
+                        <Badge variant="destructive">หมดเขต</Badge>
+                      ) : (
+                        epochMillisecondsToOnlyDate(task.due_date)
+                      )}
+                    </TableCell>
                     {userData?.role === "ADMIN" && (
                       <TableCell>{task?.user_owner_email.slice(0, 20) + "..."}</TableCell>
                     )}
