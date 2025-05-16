@@ -466,9 +466,9 @@ const TodoList = ({ userData, accessToken }) => {
               <SelectContent>
                 <SelectItem value="all">ทั้งหมด</SelectItem>
                 <SelectItem value="daily">รายวัน</SelectItem>
-                <SelectItem value="weekly">รายสัปดาห์</SelectItem>
+                {/* <SelectItem value="weekly">รายสัปดาห์</SelectItem>
                 <SelectItem value="monthly">รายเดือน</SelectItem>
-                <SelectItem value="yearly">รายปี</SelectItem>
+                <SelectItem value="yearly">รายปี</SelectItem> */}
                 <SelectItem value="one_time">ครั้งเดียว</SelectItem>
               </SelectContent>
             </Select>
