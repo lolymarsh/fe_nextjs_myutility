@@ -179,7 +179,8 @@ const TodoList = ({ userData, accessToken }) => {
         ...taskForm, 
         dc_webhook_id: taskForm.mode === "one_time" && taskForm.status === "completed" ? "" : 
                        taskForm.webhook_id === "NO_WEBHOOK" ? "" : taskForm.webhook_id, 
-        due_date: taskForm.status === "completed" ? 0 : dayjs(taskForm.due_date).valueOf() || 0
+        due_date: taskForm.status === "completed" ? 0 : dayjs(taskForm.due_date).valueOf() || 0,
+        seq: taskForm.mode === "daily" ? taskForm.seq : taskForm.status === "completed" ? 9999 : taskForm.seq,
       };
 
       const endpoint = isEditMode ? "/todo/update" : "/todo/insert";
